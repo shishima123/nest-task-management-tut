@@ -11,6 +11,7 @@ import { AuthModule } from './modules/auth/auth.module';
       database: 'task.db',
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
       synchronize: true,
+      logging: true,
     }),
     ConfigModule.forRoot({
       isGlobal: true,
