@@ -1,4 +1,8 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DeleteResult, Not, Repository } from 'typeorm';
@@ -14,12 +18,12 @@ export class UsersService {
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
-    const existingUser: User | null = await this.findByUsername(
-      createUserDto.username,
-    );
+    const existingUser = await this.usersRepository.findOne({
+      where: { email: createUserDto.email },
+    });
 
     if (existingUser) {
-      throw new ConflictException('User already exists');
+      throw new ConflictException('Email already exists');
     }
 
     const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
@@ -39,21 +43,13 @@ export class UsersService {
     const user = await this.usersRepository.findOne({ where: { id } });
 
     if (!user) {
-      throw new ConflictException('User not found');
+      throw new NotFoundException('User not found');
     }
 
     return user;
   }
 
   async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
-    const existingUser: User | null = await this.usersRepository.findOne({
-      where: { id: Not(id), username: updateUserDto.username },
-    });
-
-    if (existingUser) {
-      throw new ConflictException('User already exists');
-    }
-
     if (updateUserDto.password) {
       updateUserDto.password = await bcrypt.hash(updateUserDto.password, 10);
     }
@@ -63,11 +59,12 @@ export class UsersService {
     return this.findOne(id);
   }
 
-  async remove(id: number): Promise<DeleteResult> {
-    return await this.usersRepository.delete(id);
+  async remove(id: number): Promise<{ message: string }> {
+    await this.usersRepository.delete(id);
+    return { message: 'User deleted' };
   }
 
-  async findByUsername(username: string): Promise<User | null> {
-    return this.usersRepository.findOne({ where: { username } });
+  async findByEmail(email: string): Promise<User | null> {
+    return this.usersRepository.findOne({ where: { email } });
   }
 }
