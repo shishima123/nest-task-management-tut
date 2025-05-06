@@ -1,0 +1,19 @@
+version: '3'
+
+services:
+  redis:
+    image: redis:latest
+    container_name: nest-task-tut-redis-container
+    ports:
+      - "6379:6379"
+    volumes:
+      - nest-task-tut-redis-data:/data
+    networks:
+      - redis-network
+
+volumes:
+  nest-task-tut-redis-data:
+
+networks:
+  redis-network:
+    driver: bridge

@@ -4,6 +4,7 @@ import { ConfigModule } from '@nestjs/config';
 import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { TasksModule } from './modules/tasks/tasks.module';
+import { BullModule } from '@nestjs/bullmq';
 
 @Module({
   imports: [
@@ -16,6 +17,12 @@ import { TasksModule } from './modules/tasks/tasks.module';
     }),
     ConfigModule.forRoot({
       isGlobal: true,
+    }),
+    BullModule.forRoot({
+      connection: {
+        host: 'localhost',
+        port: 6379,
+      },
     }),
     UsersModule,
     AuthModule,

@@ -5,20 +5,32 @@ import { Repository } from 'typeorm';
 import { Task } from './entities/task.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../users/entities/user.entity';
+import { Queue } from 'bullmq';
+import { InjectQueue } from '@nestjs/bullmq';
 
 @Injectable()
 export class TasksService {
   constructor(
     @InjectRepository(Task)
     private tasksRepository: Repository<Task>,
+
+    @InjectQueue('taskEmailQueue')
+    private emailQueue: Queue,
   ) {}
   async create(createTaskDto: CreateTaskDto, user: User): Promise<Task> {
     const task = this.tasksRepository.create({
       ...createTaskDto,
       user,
     });
+    await this.tasksRepository.save(task);
 
-    return await this.tasksRepository.save(task);
+    const job = await this.emailQueue.add('task-send-email', {
+      userId: user.id,
+      userEmail: user.email,
+      taskId: task.id,
+    });
+    console.log(`Job ${job.id} added to queue`);
+    return task;
   }
 
   async findAll(user: User): Promise<Task[]> {
