@@ -5,6 +5,7 @@ import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { TasksModule } from './modules/tasks/tasks.module';
 import { BullModule } from '@nestjs/bullmq';
+import { MailModule } from './modules/mail/mail.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { BullModule } from '@nestjs/bullmq';
     UsersModule,
     AuthModule,
     TasksModule,
+    MailModule,
   ],
 })
 export class AppModule {}

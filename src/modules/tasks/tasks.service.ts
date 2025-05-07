@@ -28,6 +28,7 @@ export class TasksService {
       userId: user.id,
       userEmail: user.email,
       taskId: task.id,
+      taskTitle: task.title,
     });
     console.log(`Job ${job.id} added to queue`);
     return task;

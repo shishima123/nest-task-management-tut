@@ -1,14 +1,21 @@
 import { Processor, WorkerHost, OnWorkerEvent } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
 import { TaskSendEmail } from './types/task-send-email.type';
+import { MailService } from '../mail/mail.service';
 
 @Processor('taskEmailQueue')
 export class TasksProcessor extends WorkerHost {
+  constructor(private readonly mailService: MailService) {
+    super();
+  }
   async process(job: Job<TaskSendEmail, any, string>): Promise<void> {
     console.log(`Processing job ${job.id} with data:`, job.data);
 
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    console.log(`Email sent to ${job.data.userEmail}`);
+    await this.mailService.sendTaskCreated(
+      job.data.userEmail,
+      job.data.taskId,
+      job.data.taskTitle,
+    );
   }
 
   @OnWorkerEvent('completed')
