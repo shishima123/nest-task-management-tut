@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { LessThan, Repository } from 'typeorm';
-import { ActiveStatus, Task } from './entities/task.entity';
+import { Task } from './entities/task.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../users/entities/user.entity';
 import { Queue } from 'bullmq';
@@ -60,9 +60,9 @@ export class TasksService {
     return this.findOne(id, user);
   }
 
-  async remove(id: number, user: User): Promise<{ message: string }> {
+  async remove(id: number, user: User): Promise<null> {
     await this.tasksRepository.delete({ id, user: { id: user.id } });
-    return { message: 'Task deleted successfully' };
+    return null;
   }
 
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT, { name: 'checkOverdueTasks' })
