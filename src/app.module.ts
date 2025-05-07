@@ -6,6 +6,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { TasksModule } from './modules/tasks/tasks.module';
 import { BullModule } from '@nestjs/bullmq';
 import { MailModule } from './modules/mail/mail.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { MailModule } from './modules/mail/mail.module';
         port: 6379,
       },
     }),
+    ScheduleModule.forRoot(),
     UsersModule,
     AuthModule,
     TasksModule,

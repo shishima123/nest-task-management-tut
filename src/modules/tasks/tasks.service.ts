@@ -1,12 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
-import { Repository } from 'typeorm';
-import { Task } from './entities/task.entity';
+import { LessThan, Repository } from 'typeorm';
+import { ActiveStatus, Task } from './entities/task.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../users/entities/user.entity';
 import { Queue } from 'bullmq';
 import { InjectQueue } from '@nestjs/bullmq';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 @Injectable()
 export class TasksService {
@@ -62,5 +63,25 @@ export class TasksService {
   async remove(id: number, user: User): Promise<{ message: string }> {
     await this.tasksRepository.delete({ id, user: { id: user.id } });
     return { message: 'Task deleted successfully' };
+  }
+
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT, { name: 'checkOverdueTasks' })
+  async checkOverdueTasks() {
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+    const tasks = await this.tasksRepository.find({
+      where: { updatedAt: LessThan(oneWeekAgo) },
+    });
+    if (tasks.length === 0) {
+      console.log('No overdue tasks found');
+      return;
+    }
+    console.log('Called every 5 seconds');
+    tasks.forEach((task: Task) => {
+      console.log(
+        `Task ${task.id} is overdue (last updated: ${task.updatedAt})`,
+      );
+      this.tasksRepository.remove(task);
+    });
   }
 }
