@@ -5,10 +5,11 @@ import {
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DeleteResult, Not, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import * as bcrypt from 'bcrypt';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { plainToClass } from 'class-transformer';
 
 @Injectable()
 export class UsersService {
@@ -32,11 +33,13 @@ export class UsersService {
       ...createUserDto,
       password: hashedPassword,
     };
-    return this.usersRepository.save(user);
+    const savedUser = await this.usersRepository.save(user);
+    return plainToClass(User, savedUser);
   }
 
   async findAll(): Promise<User[]> {
-    return this.usersRepository.find();
+    const users = await this.usersRepository.find();
+    return users.map((user) => plainToClass(User, user));
   }
 
   async findOne(id: number): Promise<User> {
@@ -46,7 +49,7 @@ export class UsersService {
       throw new NotFoundException('User not found');
     }
 
-    return user;
+    return plainToClass(User, user);
   }
 
   async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
@@ -55,8 +58,8 @@ export class UsersService {
     }
 
     await this.usersRepository.update(id, updateUserDto);
-
-    return this.findOne(id);
+    const updatedUser = await this.findOne(id);
+    return plainToClass(User, updatedUser);
   }
 
   async remove(id: number): Promise<null> {
